@@ -1,0 +1,90 @@
+cmake_minimum_required(VERSION 3.4)
+project(PgTools)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -mavx2")
+
+if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+    message("Flags: ${CMAKE_CXX_FLAGS_RELEASE}")
+endif()
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(HELPER_FILES
+        utils/byteswap.h utils/helper.cpp utils/helper.h)
+
+set(LZMA_FILES
+        utils/LzmaLib.h utils/LzmaLib.cpp
+        lzma/LzmaEnc.h lzma/LzmaEnc.c
+        lzma/LzmaDec.h lzma/LzmaDec.c
+        lzma/Alloc.h lzma/Alloc.c
+        lzma/LzFindMt.h lzma/LzFindMt.c
+        lzma/LzFind.h lzma/LzFind.c
+        lzma/Ppmd7.h lzma/Ppmd7.c
+        lzma/Ppmd7Enc.c lzma/Ppmd7Dec.c
+        lzma/Threads.h lzma/Threads.c
+        )
+
+set(PG_FILES
+        ${READSSET_FILES}
+        ${LZMA_FILES}
+        pgsaconfig.cpp pgsaconfig.h
+        SCSgeneration/DefaultPseudoGenome.cpp
+        SCSgeneration/DefaultPseudoGenome.h
+        SCSgeneration/PackedPseudoGenome.cpp
+        SCSgeneration/PackedPseudoGenome.h
+        SCSgeneration/PackedPseudoGenomeBase.h
+        SCSgeneration/persistence
+        SCSgeneration/PseudoGenomeBase.h
+        SCSgeneration/PseudoGenomeInterface.h
+        SCSgeneration/Classsfication/PseudoGenomePersistence.cpp
+        SCSgeneration/Classsfication/PseudoGenomePersistence.h
+        SCSgeneration/TemplateUserGenerator.h
+        SCSgeneration/SeparatedPseudoGenomeBase.cpp pseudogenome/SeparatedPseudoGenomeBase.h
+        SCSgeneration/SeparatedPseudoGenome.cpp pseudogenome/SeparatedPseudoGenome.h
+        SCSgeneration/Classsfication/SeparatedPseudoGenomePersistence.cpp pseudogenome/persistence/SeparatedPseudoGenomePersistence.h
+set(PG_GEN_FILES
+        ${PG_FILES}
+        SCSgeneration/BulidSCS/AbstractOverlapPseudoGenomeGenerator.cpp
+        SCSgeneration/BulidSCS/AbstractOverlapPseudoGenomeGenerator.h
+        SCSgeneration/BulidSCS/GreedySwipingPackedOverlapPseudoGenomeGenerator.cpp
+        SCSgeneration/BulidSCS/GreedySwipingPackedOverlapPseudoGenomeGenerator.h
+
+set(HASHES_FILES
+        compress/rollinghash/characterhash.h
+        compress/rollinghash/cyclichash.h
+        compress/rollinghash/generalhash.h
+        compress/rollinghash/mersennetwister.cpp
+        compress/rollinghash/mersennetwister.h
+        compress/rollinghash/rabinkarphash.h
+        compress/rollinghash/threewisehash.h
+        compress/copmem/Hashes.h
+        compress/copmem/metrohash64.cpp matching/copmem/metrohash64.h matching/copmem/platform.h
+        compress/copmem/xxhash.c matching/copmem/xxhash.h
+        compress/copmem/city.cpp matching/copmem/city.h matching/copmem/citycrc.h)
+
+set(MATCHER_FILES
+        ${PG_FILES}
+        ${HASHES_FILES}
+        compress/ReadsMatchers.cpp matching/ReadsMatchers.h
+        compress/ConstantLengthPatternsOnTextHashMatcher.cpp
+        compress/ConstantLengthPatternsOnTextHashMatcher.h
+        compress/DefaultPgMatcher.cpp matching/DefaultPgMatcher.h
+        compress/SimplePgMatcher.cpp matching/SimplePgMatcher.h
+        compress/TextMatchers.cpp matching/TextMatchers.h
+        compress/copmem/CopMEMMatcher.cpp matching/copmem/CopMEMMatcher.h)
+
+add_executable(PgRC PgRC.cpp PgRCManager.cpp PgRCManager.h ${MATCHER_FILES} ${PG_GEN_FILES})
+TARGET_LINK_LIBRARIES(PgRC pthread)
+add_executable(PgRC-win PgRC.cpp PgRCManager.cpp PgRCManager.h ${MATCHER_FILES} ${PG_GEN_FILES})
+TARGET_LINK_LIBRARIES(PgRC-win pthread)
+if((CYGWIN OR MINGW) AND ${CMAKE_BUILD_TYPE} MATCHES "Release")
+    message("Windows static build: ${CMAKE_SYSTEM} ${CMAKE_SYSTEM_NAME}")
+    target_link_libraries(PgRC-win  -static -static-libgcc -static-libstdc++)
+endif()
+add_executable(PgRC-dev PgRC.cpp PgRCManager.cpp PgRCManager.h ${MATCHER_FILES} ${PG_GEN_FILES})
+target_compile_definitions(PgRC-dev PUBLIC "-DDEVELOPER_BUILD")
+TARGET_LINK_LIBRARIES(PgRC-dev pthread)
