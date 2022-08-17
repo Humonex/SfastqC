@@ -1,0 +1,9 @@
+how to use reorder
+for example:
+./reorder -i input.fastq -o output.fastq
+other options:
+  -h       produce help message
+  -i       input FASTQ file name (two files for paired end)
+  -o       output FASTQ file name((two files for paired end)
+  -t        number of threads (default 8)
+  --fasta-input                 enable if input is fasta file (i.e., no qualities)
