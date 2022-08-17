@@ -1,0 +1,7 @@
+how to use LQC
+for example ./LQC -i input.fastq output.lqc
+or ./LQC -i input_1.fastq input_2.fassq output_P.lqc
+other options
+   -t number of threads used (default 8)
+   -d decompression 
+   -o preserve original read order information
