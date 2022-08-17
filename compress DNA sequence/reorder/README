@@ -1,6 +1,7 @@
 how to use reorder
 for example:
 ./reorder -i input.fastq -o output.fastq
+./reorder -i input_1.fastq input_2.fastq -o output_1.fastq output_2.fastq
 other options:
   -h       produce help message
   -i       input FASTQ file name (two files for paired end)
